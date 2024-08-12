@@ -1,86 +1,71 @@
-#ifdef USE_ESP32
-#include <ESP8266WiFi.h>
-#include "ModbusTCP.h"
-#include <WiFiManager.h>
+#ifdef ESP32
 #include <WiFi.h>
+#include <ModbusTCP.h>
+#include <WiFiManager.h>
+#elif defined(USE_PICO)
+#include <ModbusRtu.h>
 #endif
-#include "ModbusRtu.h"
 #include <Arduino.h>
-#include "platform_config.h"
 #include "max6675.h"
+#include "platform_config.h"
 
-uint16_t au16data[16] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+// Modbus 数据数组，存储要共享的温度数据
+uint16_t au16data[16] = {0};
 
+// 初始化两个 MAX6675 温度传感器
 MAX6675 bt(CLK, btCS, SO);
 MAX6675 et(CLK, etCS, SO);
 
-/**
- *  Modbus object declaration
- *  u8id : node id = 0 for master, = 1..247 for slave
- *  u8serno : serial port (use 0 for Serial)
- *  u8txenpin : 0 for RS-232 and USB-FTDI
- *               or any pin number > 1 for RS-485
- */
-#ifdef USE_PICO
-Modbus slave(1, 0, 0); // this is slave @1 and RS-232 or USB-FTDI
-#elif defined(USE_ESP32)
+#ifdef ESP32
+// 创建 ModbusTCP 对象
 ModbusTCP modbusTCP;
+#elif defined(USE_PICO)
+// 创建 Modbus 从站对象
+Modbus slave(1, 0, 0);
 #endif
 
-// data array for modbus network sharing
+void setup() {
+  Serial.begin(115200);
 
-// MAX6675 et(CLK, etCS, btMISO);
-
-void setup()
-{
-// write your initialization code here
-#ifdef USE_ESP32
+#ifdef ESP32
+  // 使用 WiFiManager 管理 Wi-Fi 连接
   WiFiManager wm;
-  wm.resetSettings();            // todo 可能需要修改
-  wm.autoConnect("RoastLogger"); // ssid
-                                 // WiFi连接成功后将通过串口监视器输出连接成功信息
+  wm.autoConnect("RoastLogger");
+
   Serial.println("");
   Serial.print("ESP32 Connected to ");
-  Serial.println(WiFi.SSID()); // WiFi名称
-  // Serial.println(WiFi.psk());  // WiFi密码
-
-  // WiFi.begin(WiFi.SSID(), WiFi.psk();
-  //   while (WiFi.status() != WL_CONNECTED) {
-  //   delay(1000);
-  //   Serial.println("Connecting to WiFi...");
-  //   }
-  //   Serial.println("Connected to WiFi");
-  Serial.println();
-  Serial.print("Connected,IP Address:");
+  Serial.println(WiFi.SSID());
+  Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
 
-  // 初始化Modbus TCP
+  // 初始化 Modbus TCP 服务器
   modbusTCP.server();
+  
+  // 配置 Modbus 保持寄存器
+  modbusTCP.addHreg(2, 0);  // 地址 2
+  modbusTCP.addHreg(3, 0);  // 地址 3
 
-  // 配置保持寄存器数量和地址范围
-  modbusTCP.addHreg(0, 0); // 地址0，初始值1234
+#elif defined(USE_PICO)
+  // 初始化 Modbus RTU 从站
+  slave.begin(19200);
 #endif
-  Serial.begin(19200);
-  // Serial.println("test");
-  delay(500);
 }
 
-void loop()
-{
+void loop() {
+  // 读取温度传感器数据
+  au16data[2] = static_cast<uint16_t>(bt.readCelsius() * 100);
+  au16data[3] = static_cast<uint16_t>(et.readCelsius() * 100);
 
-  // write current thermocouple value
-  au16data[2] = ((uint16_t)bt.readCelsius() * 100);
-  au16data[3] = ((uint16_t)et.readCelsius() * 100);
-
-#ifdef USE_ESP32
+#ifdef ESP32
+  // 更新 Modbus 保持寄存器的值
   modbusTCP.task();
   modbusTCP.Hreg(2, au16data[2]);
   modbusTCP.Hreg(3, au16data[3]);
+
 #elif defined(USE_PICO)
+  // 处理 Modbus RTU 请求
   slave.poll(au16data, 16);
 #endif
-  // write relay value using pwm
-  analogWrite(relay, (au16data[4] / 100.0) * 255);
+
   delay(500);
 }

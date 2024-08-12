@@ -11,7 +11,6 @@
 void platformSpecificMethod();
 void setup();
 #elif defined(USE_ESP32)
-#include <WiFi.h>
 #define CLK 2 //todo 需要修改具体的引脚
 #define btCS 1
 #define etCS 5
