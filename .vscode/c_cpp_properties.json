@@ -10,6 +10,7 @@
             "includePath": [
                 "D:/devSpace/PlatformIO/RoastLogger/include",
                 "D:/devSpace/PlatformIO/RoastLogger/src",
+                "D:/devSpace/PlatformIO/RoastLogger/.pio/libdeps/pico/ArduinoWebsockets/src",
                 "D:/devSpace/PlatformIO/RoastLogger/.pio/libdeps/pico/MAX6675 library",
                 "C:/Users/Bumon/.platformio/packages/framework-arduino-mbed/cores/arduino",
                 "C:/Users/Bumon/.platformio/packages/framework-arduino-mbed/cores/arduino/api/deprecated",
@@ -65,6 +66,7 @@
                 "path": [
                     "D:/devSpace/PlatformIO/RoastLogger/include",
                     "D:/devSpace/PlatformIO/RoastLogger/src",
+                    "D:/devSpace/PlatformIO/RoastLogger/.pio/libdeps/pico/ArduinoWebsockets/src",
                     "D:/devSpace/PlatformIO/RoastLogger/.pio/libdeps/pico/MAX6675 library",
                     "C:/Users/Bumon/.platformio/packages/framework-arduino-mbed/cores/arduino",
                     "C:/Users/Bumon/.platformio/packages/framework-arduino-mbed/cores/arduino/api/deprecated",
