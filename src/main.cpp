@@ -55,12 +55,20 @@ void loop() {
   // 读取温度传感器数据
   au16data[2] = static_cast<uint16_t>(bt.readCelsius() * 100);
   au16data[3] = static_cast<uint16_t>(et.readCelsius() * 100);
+  au16data[4] = 67;
 
 #ifdef ESP32
   // 更新 Modbus 保持寄存器的值
   modbusTCP.task();
   modbusTCP.Hreg(2, au16data[2]);
   modbusTCP.Hreg(3, au16data[3]);
+  modbusTCP.Hreg(4, 7);
+  Serial.print("BT: ");
+  Serial.println(au16data[2]);
+  Serial.print("ET: ");
+  Serial.println(au16data[3]);
+  Serial.print("test: ");
+  Serial.println(au16data[4]);
 
 #elif defined(USE_PICO)
   // 处理 Modbus RTU 请求
